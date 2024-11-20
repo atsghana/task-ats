@@ -1,0 +1,71 @@
+# create the ec2 and security group ,volume attach volume.
+# Provider configuration
+provider "aws" {
+  region = "us-east-1"
+  profile ="ghana"
+}
+
+resource "aws_security_group" "my_secure" {
+  name        = "my_sg123"
+  description = "Allow SSH, HTTP, and HTTPS inbound traffic"
+
+  # Inbound rules for SSH (port 22), HTTP (port 80), and HTTPS (port 443)
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Outbound rule: allow all outbound traffic (default)
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# Define an EC2 instance
+resource "aws_instance" "example" {
+  ami           = "ami-012967cc5a8c9f891" # Replace with your desired AMI
+  instance_type = "t2.micro"
+  security_groups = [aws_security_group.my_secure.name]
+
+  tags = {
+    Name = "example-instance"
+  }
+}
+
+# Define an EBS volume
+resource "aws_ebs_volume" "example" {
+  availability_zone = "us-east-1a" # Replace with your instance's AZ
+  size              = 30           # Size in GB
+  lifecycle {
+    prevent_destroy= true
+  }
+  tags = {
+    Name = "example-volume"
+  }
+}
+
+# Attach the volume to the instance
+resource "aws_volume_attachment" "example" {
+  instance_id = aws_instance.example.id
+  volume_id   = aws_ebs_volume.example.id
+  device_name = "/dev/xvdf" # Device name
+}
