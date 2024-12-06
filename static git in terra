@@ -1,0 +1,26 @@
+#!/bin/bash
+# Update the system
+yum update -y
+
+# Install required packages (git and httpd)
+yum install -y git httpd
+
+# Start the HTTPD service and enable it to start on boot
+systemctl start httpd
+systemctl enable httpd
+
+# Go to the web server's root directory
+cd /var/www/html
+
+# Define GitHub username and personal access token
+GITHUB_USER="your-github-username"
+GITHUB_TOKEN="your-personal-access-token"
+
+# Clone the private repository using HTTPS and the token
+git clone https://$GITHUB_USER:$GITHUB_TOKEN@github.com/Adarsh2326/modules.git .
+
+# Set appropriate permissions for the cloned files (if needed)
+chown -R apache:apache /var/www/html
+
+# Restart the HTTPD service to apply changes
+systemctl restart httpd
